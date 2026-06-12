@@ -1,0 +1,271 @@
+[versions]
+# Android & Kotlin
+agp = "8.7.3"
+composePayButton = "1.1.0"
+coreSplashscreen = "1.0.1"
+desugar_jdk_libs = "2.0.4"
+ffmpegKitFull = "6.0-2"
+kotlin = "1.9.22"
+
+# AndroidX
+coreKtx = "1.15.0"
+appcompat = "1.7.0"
+pagingCommonAndroid = "3.3.5"
+datastoreCoreAndroid = "1.1.1"
+navigationCompose = "2.8.5"
+material = "1.12.0"
+browser = "1.8.0"
+foundationLayoutAndroid = "1.7.6"
+
+# Testing
+junit = "4.13.2"
+junitVersion = "1.2.1"
+espressoCore = "3.6.1"
+
+# Compose
+composeBom = "2024.02.00"
+multidex = "2.0.1"
+# Accompanist
+accompanistSystemUi = "0.32.0"
+
+# Hilt
+hilt = "2.50"
+hiltNavigationCompose = "1.1.0"
+
+# Coroutines
+coroutinesCore = "1.8.0"
+coroutinesAndroid = "1.6.4"
+
+# Apollo
+apollo = "3.8.2"
+
+# Firebase
+firebaseAuth = "23.1.0"
+firebaseMessaging = "24.1.0"
+firebaseBom = "33.7.0"
+
+# Image Loading
+coil = "2.4.0"
+
+# Google Services
+googleCloudTranslate = "2.8.0"
+mlkitTranslate = "17.0.3"
+mlkitLanguageId = "17.0.6"
+
+playServicesBase = "18.5.0"
+playServicesMaps = "19.0.0"
+playServicesAuth = "21.3.0"
+playServicesWallet = "19.4.0"
+playServicesLocation = "21.3.0"
+googleId = "1.1.1"
+
+posthogAndroid = "3.22.0"
+tensorflowLite = "2.16.1"
+tensorflowLiteGpu = "2.16.1"
+tensorflowLiteSupport = "0.1.0"
+
+google-services = "4.4.2"  # Added Google Services version
+
+# Exoplayer
+media3Exoplayer = "1.5.1"
+
+# Facebook SDK
+facebookSdk = "latest.release"
+
+# Other Libraries
+branch = "5.12.0"
+accompanistSwiperefresh = "0.32.0"
+giphyUi = "2.3.12"
+jsoup = "1.14.3"
+okhttp = "4.9.3"
+ffmpegKit = "5.1"
+roomRuntime = "2.6.1"
+stripe = "21.4.2"
+dotsIndicator = "5.0"
+
+# Grasspitch Packages
+model = "1.0.51"
+interfaces = "1.0.92"
+resources = "1.0.81"
+graphqlapi = "1.0.18"
+commons = "1.0.41"
+components = "1.0.120"
+roomdatabase = "1.0.11"
+navigation = "1.0.247"
+dimodules = "1.0.75"
+mediaoverlaykit = "1.0.107"
+
+preapp = "1.0.43"
+feed = "1.0.54"
+news = "1.0.41"
+notifications = "1.0.12"
+followedteams = "1.0.41"
+message = "1.0.35"
+search = "1.0.30"
+comments = "1.0.66"
+saved = "1.0.18"
+scores = "1.0.51"
+match = "1.0.47"
+club = "1.0.38"
+league = "1.0.29"
+userprofiles = "1.0.101"
+settings = "1.0.30"
+communities = "1.0.115"
+podcasts = "1.0.67"
+recordings = "1.0.37"
+reels = "1.0.22"
+share = "1.0.34"
+posts = "1.0.10"
+verify = "1.0.66"
+analytics = "1.0.12"
+adverts = "1.0.34"
+videorecorder = "1.0.173"
+events = "1.0.194"
+musicactivity = "1.0.13"
+
+
+[libraries]
+# AndroidX
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "coreSplashscreen" }
+androidx-paging-common-android = { group = "androidx.paging", name = "paging-common-android", version.ref = "pagingCommonAndroid" }
+androidx-datastore-core-android = { group = "androidx.datastore", name = "datastore-core-android", version.ref = "datastoreCoreAndroid" }
+androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
+androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomRuntime" }
+androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "roomRuntime" }
+androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomRuntime" }
+desugar_jdk_libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugar_jdk_libs" }
+ffmpeg-kit-full-v602 = { module = "com.arthenica:ffmpeg-kit-full", version.ref = "ffmpegKitFull" }
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+androidx-browser = { group = "androidx.browser", name = "browser", version.ref = "browser" }
+
+# Testing
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
+androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
+
+# Compose
+compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+compose-ui = { group = "androidx.compose.ui", name = "ui" }
+compose-foundation = { group = "androidx.compose.foundation", name = "foundation" }
+compose-material3 = { group = "androidx.compose.material3", name = "material3" }
+
+# Hilt
+hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
+hilt-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "hilt" }
+androidx-hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
+
+# Coroutines
+kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutinesCore" }
+kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutinesAndroid" }
+
+# Exoplayer
+androidx-media3-common = { module = "androidx.media3:media3-common", version.ref = "media3Exoplayer" }
+androidx-media3-exoplayer = { module = "androidx.media3:media3-exoplayer", version.ref = "media3Exoplayer" }
+androidx-media3-exoplayer-dash = { module = "androidx.media3:media3-exoplayer-dash", version.ref = "media3Exoplayer" }
+androidx-media3-exoplayer-hls = { module = "androidx.media3:media3-exoplayer-hls", version.ref = "media3Exoplayer" }
+androidx-media3-session = { module = "androidx.media3:media3-session", version.ref = "media3Exoplayer" }
+androidx-media3-ui = { module = "androidx.media3:media3-ui", version.ref = "media3Exoplayer" }
+
+# Apollo
+apollo-runtime = { group = "com.apollographql.apollo3", name = "apollo-runtime", version.ref = "apollo" }
+apollo-api = { group = "com.apollographql.apollo3", name = "apollo-api", version.ref = "apollo" }
+apollo-cache-sqlite = { group = "com.apollographql.apollo3", name = "apollo-normalized-cache-sqlite", version.ref = "apollo" }
+
+# Firebase
+firebase-auth = { group = "com.google.firebase", name = "firebase-auth", version.ref = "firebaseAuth" }
+firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging", version.ref = "firebaseMessaging" }
+firebase-auth-ktx = { group = "com.google.firebase", name = "firebase-auth-ktx" }
+firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
+
+# Image Loading
+coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
+coil-gif = { group = "io.coil-kt", name = "coil-gif", version.ref = "coil" }
+
+# Google Services
+google-cloud-translate = { group = "com.google.cloud", name = "google-cloud-translate", version.ref = "googleCloudTranslate" }
+mlkit-translate = { group = "com.google.mlkit", name = "translate", version.ref = "mlkitTranslate" }
+mlkit-language-id = { group = "com.google.mlkit", name = "language-id", version.ref = "mlkitLanguageId" }
+
+play-services-maps = { group = "com.google.android.gms", name = "play-services-maps", version.ref = "playServicesMaps" }
+play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
+play-services-base = { group = "com.google.android.gms", name = "play-services-base", version.ref = "playServicesBase" }
+play-services-auth = { group = "com.google.android.gms", name = "play-services-auth", version.ref = "playServicesAuth" }
+play-services-wallet = { group = "com.google.android.gms", name = "play-services-wallet", version.ref = "playServicesWallet" }
+google-id = { group = "com.google.android.libraries.identity.googleid", name = "googleid", version.ref = "googleId" }
+
+posthog-android = { module = "com.posthog:posthog-android", version.ref = "posthogAndroid" }
+tensorflow-lite = { module = "org.tensorflow:tensorflow-lite", version.ref = "tensorflowLite" }
+tensorflow-lite-gpu = { module = "org.tensorflow:tensorflow-lite-gpu", version.ref = "tensorflowLiteGpu" }
+tensorflow-lite-support = { module = "org.tensorflow:tensorflow-lite-support", version.ref = "tensorflowLiteSupport" }
+
+# Facebook SDK
+facebook-share = { group = "com.facebook.android", name = "facebook-share", version.ref = "facebookSdk" }
+facebook-login = { group = "com.facebook.android", name = "facebook-login", version.ref = "facebookSdk" }
+facebook-core = { group = "com.facebook.android", name = "facebook-core", version.ref = "facebookSdk" }
+facebook-sdk = { group = "com.facebook.android", name = "facebook-android-sdk", version.ref = "facebookSdk" }
+
+# Android
+multidex = { group = "androidx.multidex", name = "multidex", version.ref = "multidex" }
+
+# Accompanist
+accompanist-systemui = { group = "com.google.accompanist", name = "accompanist-systemuicontroller", version.ref = "accompanistSystemUi" }
+accompanist-swiperefresh = { group = "com.google.accompanist", name = "accompanist-swiperefresh", version.ref = "accompanistSwiperefresh" }
+
+# Other Libraries
+branch = { module = "io.branch.sdk.android:library", version.ref = "branch" }
+giphy-ui = { group = "com.giphy.sdk", name = "ui", version.ref = "giphyUi" }
+jsoup = { group = "org.jsoup", name = "jsoup", version.ref = "jsoup" }
+okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
+ffmpeg-kit = { group = "com.arthenica", name = "ffmpeg-kit-full", version.ref = "ffmpegKit" }
+stripe = { group = "com.stripe", name = "stripe-android", version.ref = "stripe" }
+dots-indicator = { group = "com.tbuonomo", name = "dotsindicator", version.ref = "dotsIndicator" }
+
+# Grasspitch Packages
+model = { module = "com.android:model", version.ref = "model" }
+resources = { module = "com.android:resources", version.ref = "resources" }
+graphqlapi = { module = "com.android:graphqlapi", version.ref = "graphqlapi" }
+commons = { module = "com.android:commons", version.ref = "commons" }
+components = { module = "com.android:components", version.ref = "components" }
+roomdatabase = { module = "com.android:roomdatabase", version.ref = "roomdatabase" }
+interfaces = { module = "com.android:interfaces", version.ref = "interfaces" }
+navigation = { module = "com.android:navigation", version.ref = "navigation" }
+
+dimodules = { module = "com.android:dimodules", version.ref = "dimodules" }
+preapp = { module = "com.android:preapp", version.ref = "preapp" }
+feed = { module = "com.android:feed", version.ref = "feed" }
+reels = { module = "com.android:reels", version.ref = "reels" }
+news = { module = "com.android:news", version.ref = "news" }
+message = { module = "com.android:message", version.ref = "message" }
+notifications = { module = "com.android:notifications", version.ref = "notifications" }
+communities = { module = "com.android:communities", version.ref = "communities" }
+comments = { module = "com.android:comments", version.ref = "comments" }
+match = { module = "com.android:matchinfofootball", version.ref = "match" }
+league = { module = "com.android:leaguefootball", version.ref = "league" }
+club = { module = "com.android:clubfootball", version.ref = "club" }
+saved = { module = "com.android:saved", version.ref = "saved" }
+search = { module = "com.android:search", version.ref = "search" }
+share = { module = "com.android:share", version.ref = "share" }
+settings = { module = "com.android:settings", version.ref = "settings" }
+videorecorder = { module = "com.android:videorecorder", version.ref = "videorecorder" }
+adverts = { module = "com.android:adverts", version.ref = "adverts" }
+analytics = { module = "com.android:analytics", version.ref = "analytics" }
+events = { module = "com.android:events", version.ref = "events" }
+userprofiles = { module = "com.android:userprofiles", version.ref = "userprofiles" }
+podcasts = { module = "com.android:podcasts", version.ref = "podcasts" }
+posts = { module = "com.android:posts", version.ref = "posts" }
+followedteams = { module = "com.android:followedteams", version.ref = "followedteams" }
+mediaoverlaykit = { module = "com.android:mediaoverlaykit", version.ref = "mediaoverlaykit" }
+musicactivity = { module = "com.android:musicactivity", version.ref = "musicactivity" }
+recordings = { module = "com.android:recordings", version.ref = "recordings" }
+verify = { module = "com.android:verify", version.ref = "verify" }
+scores = { module = "com.android:scoresfootball", version.ref = "scores" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+android-library = { id = "com.android.library", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
+google-services = { id = "com.google.gms.google-services", version.ref = "google-services" }  # Added Google Services plugin
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }

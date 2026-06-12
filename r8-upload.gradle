@@ -1,0 +1,42 @@
+// Oleus R8 mapping upload — apply from the consuming app's build.gradle:
+//
+//   apply from: "path/to/r8-upload.gradle"   // or copy this task into CI
+//
+// Required env (CI): OLEUS_URL (e.g. https://oleus.example.com), and the
+// dashboard session or network access to /api. Runs after every minified
+// release assembly so the platform can retrace obfuscated crash stacks.
+
+afterEvaluate {
+    def uploadTask = tasks.register("oleusUploadMapping") {
+        group = "oleus"
+        description = "Upload R8 mapping.txt to the Oleus symbolication service"
+        doLast {
+            def mapping = file("${buildDir}/outputs/mapping/release/mapping.txt")
+            if (!mapping.exists()) {
+                logger.lifecycle("[oleus] no mapping.txt (R8 disabled?) — skipping upload")
+                return
+            }
+            def oleusUrl = System.getenv("OLEUS_URL")
+            if (oleusUrl == null) {
+                throw new GradleException("[oleus] OLEUS_URL not set — cannot upload mapping.txt")
+            }
+            def versionName = android.defaultConfig.versionName ?: "0.0"
+            def versionCode = android.defaultConfig.versionCode ?: 0
+            def version = "${versionName}+${versionCode}"
+            def service = System.getenv("OLEUS_SERVICE") ?: "rondo-android"
+
+            exec {
+                commandLine "curl", "--fail", "--silent", "--show-error",
+                    "-F", "service=${service}",
+                    "-F", "version=${version}",
+                    "-F", "mapping=@${mapping.absolutePath}",
+                    "${oleusUrl}/api/symbols/r8-mapping"
+            }
+            logger.lifecycle("[oleus] uploaded mapping.txt for ${service} ${version}")
+        }
+    }
+
+    tasks.matching { it.name == "assembleRelease" || it.name == "bundleRelease" }.configureEach {
+        finalizedBy(uploadTask)
+    }
+}
