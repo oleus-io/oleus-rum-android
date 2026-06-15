@@ -30,6 +30,9 @@ dependencies {
     // Optional integrations — only active when the host app ships these.
     compileOnly("com.squareup.okhttp3:okhttp:4.12.0")
     compileOnly("com.jakewharton.timber:timber:5.0.1")
+
+    // Pure-JVM unit tests (no Android Context required — see OleusIdentity).
+    testImplementation("junit:junit:4.13.2")
 }
 
 // ── Publication: io.oleus:oleus-mobile → GitHub Packages ─────────────────────

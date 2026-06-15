@@ -30,6 +30,7 @@ public object OleusMobile {
     private var anrWatchdog: AnrWatchdog? = null
     private var appVersion: String = "unknown"
     private var deviceId: String = "unknown"
+    private var identity: OleusIdentity? = null
     private val breadcrumbs = mutableListOf<JSONObject>()
     private const val MAX_BREADCRUMBS = 50
     private const val PREFS = "io.oleus.mobile"
@@ -49,6 +50,9 @@ public object OleusMobile {
 
         appVersion = readAppVersion(app)
         deviceId = readDeviceId(app)
+
+        val sharedPrefs = app.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        identity = OleusIdentity(SharedPrefsIdentityStore(sharedPrefs))
 
         val baseDir = File(app.filesDir, "oleus").apply { mkdirs() }
         val sessionMarker = File(baseDir, "session.current")
@@ -157,6 +161,52 @@ public object OleusMobile {
         shipper?.flush()
     }
 
+    // ── identity ────────────────────────────────────────────────────────────────
+
+    /**
+     * Tie the current anonymous install to a known user id. Emits a `${'$'}identify`
+     * carrying the anonymous id so pre-login activity stitches to one person.
+     * [properties] become person properties (`${'$'}set`).
+     */
+    @JvmStatic
+    @JvmOverloads
+    public fun identify(distinctId: String, properties: Map<String, Any>? = null) {
+        if (distinctId.isEmpty()) return
+        val ship = shipper ?: return
+        val id = identity ?: return
+        val anon = id.anonId
+        id.identify(distinctId)
+        val attrs = baseAttributes().toMutableMap()
+        attrs["event.name"] = "\$identify"
+        attrs["event.domain"] = "oleus"
+        attrs["\$anon_id"] = anon
+        properties?.forEach { (k, v) -> attrs["\$set.$k"] = v.toString() }
+        ship.enqueue(System.currentTimeMillis(), "INFO", "\$identify", attrs)
+    }
+
+    /** Merge another distinct id into the current person (e.g. web ↔ Android). */
+    @JvmStatic
+    public fun alias(otherDistinctId: String) {
+        if (otherDistinctId.isEmpty()) return
+        val ship = shipper ?: return
+        val attrs = baseAttributes().toMutableMap()
+        attrs["event.name"] = "\$merge"
+        attrs["event.domain"] = "oleus"
+        attrs["\$alias"] = otherDistinctId
+        ship.enqueue(System.currentTimeMillis(), "INFO", "\$merge", attrs)
+    }
+
+    /** Clear identity on logout: forget the user id and rotate the anonymous id. */
+    @JvmStatic
+    public fun reset() {
+        identity?.reset()
+    }
+
+    /** The id currently sent on every event (user id once identified, else anon).
+     *  Named to match the browser/iOS SDKs (`getDistinctId`). */
+    @JvmStatic
+    public fun getDistinctId(): String = identity?.distinctId ?: "unknown"
+
     // ── internals ─────────────────────────────────────────────────────────────
 
     private fun handleCrash(ship: OtlpShipper, thread: Thread, throwable: Throwable) {
@@ -215,6 +265,7 @@ public object OleusMobile {
             "app_version" to appVersion,
             "release" to appVersion,
             "device.id" to deviceId,
+            "distinct_id" to (identity?.distinctId ?: "unknown"),
         )
         sessions?.sessionId?.let { attrs["session.id"] = it }
         return attrs
