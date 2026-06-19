@@ -1,0 +1,22 @@
+# gradle.properties.template
+#
+# Copy this to ~/.gradle/gradle.properties (NOT committed to git) and fill in
+# your credentials. The release script reads these when publishing to Maven Central.
+#
+# ── Maven Central (Sonatype Central Portal) ──────────────────────────────────
+# Generate a token pair at: https://central.sonatype.com → Account → Generate User Token
+centralPortal.username=YOUR_CENTRAL_PORTAL_USERNAME_TOKEN
+centralPortal.password=YOUR_CENTRAL_PORTAL_PASSWORD_TOKEN
+
+# ── GPG signing (required by Maven Central) ───────────────────────────────────
+# Export your ASCII-armored private key:
+#   gpg --export-secret-keys --armor <KEY_ID> | pbcopy
+# Paste the full block (including -----BEGIN PGP PRIVATE KEY BLOCK-----) as a
+# single-line value using \n for newlines, or use the env var SIGNING_KEY instead.
+signing.key=YOUR_GPG_PRIVATE_KEY_ASCII_ARMORED
+signing.password=YOUR_GPG_KEY_PASSPHRASE
+
+# ── GitHub Packages (optional fallback) ───────────────────────────────────────
+# Only needed if you also publish to GitHub Packages.
+# gpr.user=YOUR_GITHUB_USERNAME
+# gpr.token=YOUR_GITHUB_PAT_WITH_WRITE_PACKAGES_SCOPE

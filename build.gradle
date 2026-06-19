@@ -1,7 +1,13 @@
 plugins {
     id 'com.android.library'
     id 'org.jetbrains.kotlin.android'
+    id 'maven-publish'
+    id 'signing'
+    id 'com.gradleup.nmcp' version '0.1.3'
 }
+
+group = 'io.oleus'
+version = '0.8.0'
 
 android {
     namespace 'io.oleus.rum'
@@ -15,10 +21,75 @@ android {
         targetCompatibility JavaVersion.VERSION_17
     }
     kotlinOptions { jvmTarget = '17' }
+    publishing {
+        singleVariant('release') {
+            withSourcesJar()
+        }
+    }
 }
 
 dependencies {
     implementation 'androidx.lifecycle:lifecycle-process:2.7.0'
     implementation 'com.squareup.okhttp3:okhttp:4.12.0'
     implementation 'com.google.code.gson:gson:2.10.1'
+}
+
+publishing {
+    publications {
+        release(MavenPublication) {
+            groupId = 'io.oleus'
+            artifactId = 'rum-android'
+            version = project.version
+
+            afterEvaluate {
+                from components.release
+            }
+
+            pom {
+                name = 'OleusRUM Android'
+                description = 'Oleus Real User Monitoring SDK for Android.'
+                url = 'https://github.com/oleus-io/oleus-rum-android'
+                licenses {
+                    license {
+                        name = 'Commercial'
+                        url = 'https://github.com/oleus-io/oleus-rum-android/blob/main/LICENSE'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'oleus-io'
+                        name = 'Oleus'
+                        email = 'sdk@oleus.io'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:git://github.com/oleus-io/oleus-rum-android.git'
+                    developerConnection = 'scm:git:ssh://github.com:oleus-io/oleus-rum-android.git'
+                    url = 'https://github.com/oleus-io/oleus-rum-android'
+                }
+            }
+        }
+    }
+}
+
+// GPG signing — required by Maven Central.
+// Supply via gradle.properties or env vars (see gradle.properties.template).
+signing {
+    def signingKey = findProperty('signing.key') ?: System.getenv('SIGNING_KEY')
+    def signingPassword = findProperty('signing.password') ?: System.getenv('SIGNING_PASSWORD')
+    if (signingKey) {
+        useInMemoryPgpKeys(signingKey, signingPassword)
+        sign publishing.publications.release
+    }
+}
+
+// Maven Central via Sonatype Central Portal (new portal, not legacy OSSRH).
+// Requires the com.gradleup.nmcp plugin declared above.
+nmcp {
+    publishAllPublicationsToCentralPortal {
+        username = findProperty('centralPortal.username') ?: System.getenv('CENTRAL_PORTAL_USERNAME')
+        password = findProperty('centralPortal.password') ?: System.getenv('CENTRAL_PORTAL_PASSWORD')
+        // AUTOMATIC releases immediately; USER_MANAGED lets you review on portal first.
+        publishingType = 'AUTOMATIC'
+    }
 }
