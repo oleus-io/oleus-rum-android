@@ -6,11 +6,11 @@ plugins {
     id 'com.gradleup.nmcp' version '0.1.3'
 }
 
-group = 'io.oleus'
+group = 'io.github.oleus-io'
 version = '0.8.2'
 
 android {
-    namespace 'io.oleus.rum'
+    namespace 'io.github.oleus-io.rum'
     compileSdk 34
     defaultConfig {
         minSdk 21
@@ -37,7 +37,7 @@ dependencies {
 publishing {
     publications {
         release(MavenPublication) {
-            groupId = 'io.oleus'
+            groupId = 'io.github.oleus-io'
             artifactId = 'rum-android'
             version = project.version
 

@@ -5,7 +5,7 @@ requests, crashes, and ANRs, and ships them to the Oleus platform.
 
 - **Min SDK:** 21 (Android 5.0) · **Target/Compile SDK:** 34
 - **Language:** Kotlin (JVM 17)
-- **Coordinates:** `io.oleus:rum-android`
+- **Coordinates:** `io.github.oleus-io:rum-android`
 - **Distribution:** Maven (GitHub Packages / Maven Central)
 
 > This `src/` tree is the source of truth inside the platform monorepo. It is
@@ -25,7 +25,7 @@ config needed.
 // dependencyResolutionManagement { repositories { mavenCentral() } }
 
 dependencies {
-    implementation("io.oleus:rum-android:0.8.0")
+    implementation("io.github.oleus-io:rum-android:0.8.0")
 }
 ```
 
@@ -33,7 +33,7 @@ dependencies {
 
 ```groovy
 dependencies {
-    implementation 'io.oleus:rum-android:0.8.0'
+    implementation 'io.github.oleus-io:rum-android:0.8.0'
 }
 ```
 
