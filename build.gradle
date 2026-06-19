@@ -7,7 +7,7 @@ plugins {
 }
 
 group = 'io.oleus'
-version = '0.8.0'
+version = '0.8.2'
 
 android {
     namespace 'io.oleus.rum'

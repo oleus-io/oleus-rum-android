@@ -73,6 +73,32 @@ class OleusRUM private constructor(
         enqueue(makeEvent("action", attributes + mapOf("action_name" to name)))
     }
 
+    fun trackError(
+        message: String,
+        throwable: Throwable? = null,
+        attributes: Map<String, Any> = emptyMap(),
+    ) {
+        val attrs = attributes.toMutableMap()
+        attrs["message"] = message
+        if (throwable != null) {
+            attrs["error_type"] = throwable.javaClass.simpleName
+            attrs["error_description"] = throwable.localizedMessage ?: ""
+            attrs["stack_trace"] = throwable.stackTraceToString().take(4000)
+        }
+        enqueue(makeEvent("error", attrs))
+    }
+
+    fun addBreadcrumb(
+        message: String,
+        category: String = "default",
+        attributes: Map<String, Any> = emptyMap(),
+    ) {
+        val attrs = attributes.toMutableMap()
+        attrs["message"] = message
+        attrs["category"] = category
+        enqueue(makeEvent("breadcrumb", attrs))
+    }
+
     fun trackResource(url: String, method: String, statusCode: Int, durationMs: Double, traceId: String, spanId: String) {
         enqueue(makeEvent("resource", mapOf("url" to url, "method" to method,
             "status_code" to statusCode, "duration_ms" to durationMs,
