@@ -75,7 +75,7 @@ publishing {
 // GPG signing — required by Maven Central.
 // Supply via gradle.properties or env vars (see gradle.properties.template).
 signing {
-    def signingKey = findProperty('signing.key') ?: System.getenv('SIGNING_KEY')
+    def signingKey = (findProperty('signing.key') ?: System.getenv('SIGNING_KEY'))?.replace('\\n', '\n')
     def signingPassword = findProperty('signing.password') ?: System.getenv('SIGNING_PASSWORD')
     if (signingKey) {
         useInMemoryPgpKeys(signingKey, signingPassword)
