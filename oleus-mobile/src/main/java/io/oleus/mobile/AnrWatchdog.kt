@@ -37,8 +37,13 @@ internal class AnrWatchdog(
                 val blockedFor = System.currentTimeMillis() - lastTickMs
                 if (blockedFor > thresholdMs && !reportedCurrentBlockage) {
                     reportedCurrentBlockage = true
-                    val stack = Looper.getMainLooper().thread.stackTrace
-                        .joinToString("\n") { "at $it" }
+                    // Capture all threads — main thread marked [BLOCKED]
+                    val mainThread = Looper.getMainLooper().thread
+                    val stack = Thread.getAllStackTraces().entries.joinToString("\n\n") { (t, frames) ->
+                        val marker = if (t == mainThread) " [BLOCKED]" else ""
+                        "Thread: ${t.name} [${t.state}]$marker\n" +
+                            frames.joinToString("\n") { "  at $it" }
+                    }
                     onAnr(stack, blockedFor)
                 } else if (blockedFor < thresholdMs) {
                     reportedCurrentBlockage = false

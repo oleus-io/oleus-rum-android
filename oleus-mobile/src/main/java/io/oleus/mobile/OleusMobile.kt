@@ -2,7 +2,9 @@ package io.oleus.mobile
 
 import android.app.Application
 import android.app.ApplicationExitInfo
+import android.content.ComponentCallbacks2
 import android.content.Context
+import android.content.res.Configuration
 import android.os.Build
 import org.json.JSONArray
 import org.json.JSONObject
@@ -134,7 +136,36 @@ public object OleusMobile {
             }.also { it.start() }
         }
 
-        // 6. auto activity tracking + session replay
+        // 6. memory pressure callbacks (OOM precursor)
+        if (app is Application) {
+            app.registerComponentCallbacks(object : ComponentCallbacks2 {
+                override fun onConfigurationChanged(newConfig: Configuration) {}
+                override fun onLowMemory() {}
+                override fun onTrimMemory(level: Int) {
+                    if (level < ComponentCallbacks2.TRIM_MEMORY_RUNNING_CRITICAL) return
+                    val label = when (level) {
+                        ComponentCallbacks2.TRIM_MEMORY_RUNNING_CRITICAL -> "RUNNING_CRITICAL"
+                        ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW      -> "RUNNING_LOW"
+                        ComponentCallbacks2.TRIM_MEMORY_COMPLETE         -> "COMPLETE"
+                        else -> "level_$level"
+                    }
+                    val am = app.getSystemService(Context.ACTIVITY_SERVICE) as android.app.ActivityManager
+                    val mi = android.app.ActivityManager.MemoryInfo().also { am.getMemoryInfo(it) }
+                    val availMb = mi.availMem / (1024 * 1024)
+                    val totalMb = mi.totalMem  / (1024 * 1024)
+                    val attrs = baseAttributes().toMutableMap()
+                    attrs["event.name"]   = "memory_warning"
+                    attrs["event.domain"] = "oleus"
+                    attrs["trim_level"]   = label
+                    attrs["avail_mb"]     = availMb.toString()
+                    attrs["total_mb"]     = totalMb.toString()
+                    ship(System.currentTimeMillis(), "WARN",
+                        "memory_warning: $label (${availMb}MB free of ${totalMb}MB)", attrs)
+                }
+            })
+        }
+
+        // 7. auto activity tracking + session replay
         if (app is Application) {
             val tracker = ActivityTracker()
             if (sessionReplayEnabled && Math.random() < sessionReplaySampleRate) {
@@ -249,6 +280,51 @@ public object OleusMobile {
         metricsShipper?.recordHistogram(name, value, tags)
     }
 
+    // ── Distributed tracing spans ─────────────────────────────────────────────
+
+    /**
+     * Start a distributed tracing span. Call [OleusSpan.finish] when the
+     * operation completes — the span is then shipped as a log event to
+     * ClickHouse alongside crashes and sessions.
+     *
+     * ```kotlin
+     * val span = OleusMobile.startSpan("api.call", attributes = mapOf("endpoint" to "/events"))
+     * try {
+     *     // ... work ...
+     * } catch (e: Exception) {
+     *     span.setError(e.message ?: "error")
+     *     throw e
+     * } finally {
+     *     span.finish()
+     * }
+     * ```
+     *
+     * Use [OleusSpan.childSpan] to nest operations under the same trace ID.
+     */
+    @JvmStatic
+    @JvmOverloads
+    public fun startSpan(
+        name:       String,
+        traceId:    String? = null,
+        attributes: Map<String, String> = emptyMap(),
+    ): OleusSpan = OleusSpan(
+        name    = name,
+        traceId = traceId ?: OleusSpan.randomHex(32),
+        onFinish = { span ->
+            val attrs = baseAttributes().toMutableMap()
+            attrs["event.name"]       = "span"
+            attrs["event.domain"]     = "oleus"
+            attrs["span.name"]        = span.name
+            attrs["trace_id"]         = span.traceId
+            attrs["span_id"]          = span.spanId
+            for ((k, v) in span.allTags) attrs[k] = v
+            ship(span.startTimestamp, if (span.spanStatus == "error") "ERROR" else "INFO",
+                "span:${span.name}", attrs)
+        },
+    ).also { span ->
+        attributes.forEach { (k, v) -> span.setTag(k, v) }
+    }
+
     // ── identity ────────────────────────────────────────────────────────────────
 
     /**
@@ -299,9 +375,15 @@ public object OleusMobile {
 
     private fun handleCrash(ship: OtlpShipper, thread: Thread, throwable: Throwable) {
         val attrs = baseAttributes().toMutableMap()
-        attrs["error_type"] = throwable.javaClass.simpleName
+        attrs["error_type"]  = throwable.javaClass.simpleName
         attrs["error_stack"] = throwable.stackTraceToString()
-        attrs["thread"] = thread.name
+        attrs["thread"]      = thread.name
+        // Capture all live threads so engineers can see what was running at crash time
+        attrs["all_threads"] = Thread.getAllStackTraces().entries.joinToString("\n\n") { (t, frames) ->
+            val crashed = if (t == thread) " [CRASHED]" else ""
+            "Thread: ${t.name} [${t.state}]$crashed\n" +
+                frames.joinToString("\n") { "  at $it" }
+        }
         attrs["breadcrumbs"] = breadcrumbsJson()
         attrs["crash_source"] = "uncaught_exception"
         // synchronous persist — the process dies right after this returns;
@@ -326,8 +408,9 @@ public object OleusMobile {
                 if (exit.timestamp > newest) newest = exit.timestamp
 
                 val (type, severity) = when (exit.reason) {
-                    ApplicationExitInfo.REASON_ANR -> "ANR_SystemKill" to "FATAL"
-                    ApplicationExitInfo.REASON_CRASH_NATIVE -> "NativeCrash" to "FATAL"
+                    ApplicationExitInfo.REASON_ANR          -> "ANR_SystemKill" to "FATAL"
+                    ApplicationExitInfo.REASON_CRASH_NATIVE -> "NativeCrash"    to "FATAL"
+                    ApplicationExitInfo.REASON_LOW_MEMORY   -> "OOMKill"        to "FATAL"
                     else -> continue
                 }
                 val attrs = baseAttributes().toMutableMap()
