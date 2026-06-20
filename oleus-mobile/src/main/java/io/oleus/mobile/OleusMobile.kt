@@ -15,7 +15,7 @@ import java.io.File
  * // In Application.onCreate():
  * OleusMobile.initialize(
  *     context = this,
- *     endpoint = "https://oleus.example.com/otlp",   // HTTPS — Android blocks cleartext by default
+ *     endpoint = "https://api.dashboard.oleus.io/otlp",   // HTTPS — Android blocks cleartext by default
  *     service = "rondo-android",
  *     apiKey = BuildConfig.OLEUS_INGEST_KEY,
  * )
@@ -26,15 +26,17 @@ import java.io.File
  */
 public object OleusMobile {
     private var shipper: OtlpShipper? = null
+    private var metricsShipper: MetricsShipper? = null
     private var sessions: SessionTracker? = null
     private var anrWatchdog: AnrWatchdog? = null
+    private var jankMonitor: JankMonitor? = null
     private var activityTracker: ActivityTracker? = null
     private var sessionReplay: SessionReplay? = null
     private var appVersion: String = "unknown"
     private var deviceId: String = "unknown"
     private var identity: OleusIdentity? = null
     private val breadcrumbs = mutableListOf<JSONObject>()
-    private const val MAX_BREADCRUMBS = 50
+    private var maxBreadcrumbs = 50
     private const val PREFS = "io.oleus.mobile"
 
     @JvmStatic
@@ -48,8 +50,12 @@ public object OleusMobile {
         anrDetection: Boolean = true,
         sessionReplayEnabled: Boolean = true,
         sessionReplaySampleRate: Double = 0.1,
+        maxBreadcrumbs: Int = 50,
+        jankMonitorEnabled: Boolean = true,
+        customMetricsEnabled: Boolean = true,
     ) {
         if (shipper != null) return
+        this.maxBreadcrumbs = maxBreadcrumbs
         val app = context.applicationContext
 
         appVersion = readAppVersion(app)
@@ -62,8 +68,9 @@ public object OleusMobile {
         val sessionMarker = File(baseDir, "session.current")
         val previousSession = SessionTracker.previousSessionId(sessionMarker)
 
+        val trimmedEndpoint = endpoint.trimEnd('/')
         val ship = OtlpShipper(
-            endpoint = endpoint.trimEnd('/'),
+            endpoint = trimmedEndpoint,
             service = service,
             apiKey = apiKey,
             environment = environment,
@@ -71,6 +78,16 @@ public object OleusMobile {
             queueDir = File(baseDir, "queue"),
         )
         shipper = ship
+
+        if (customMetricsEnabled) {
+            metricsShipper = MetricsShipper(
+                endpoint    = trimmedEndpoint,
+                service     = service,
+                apiKey      = apiKey,
+                environment = environment,
+                release     = appVersion,
+            )
+        }
 
         // 1. surface system-recorded deaths from the previous run (ANR / native crash)
         reapApplicationExitInfo(app, ship, previousSession)
@@ -106,7 +123,18 @@ public object OleusMobile {
             }).also { it.start() }
         }
 
-        // 5. auto activity tracking + session replay
+        // 5. jank monitor
+        if (jankMonitorEnabled) {
+            jankMonitor = JankMonitor { frameMs, type ->
+                val attrs = baseAttributes().toMutableMap()
+                attrs["event.name"] = type
+                attrs["frame_ms"]   = frameMs.toString()
+                ship.enqueue(System.currentTimeMillis(), if (type == "frozen_frame") "ERROR" else "WARN",
+                    "$type: ${frameMs}ms", attrs)
+            }.also { it.start() }
+        }
+
+        // 6. auto activity tracking + session replay
         if (app is Application) {
             val tracker = ActivityTracker()
             if (sessionReplayEnabled && Math.random() < sessionReplaySampleRate) {
@@ -145,7 +173,7 @@ public object OleusMobile {
         }
         synchronized(breadcrumbs) {
             breadcrumbs.add(crumb)
-            if (breadcrumbs.size > MAX_BREADCRUMBS) breadcrumbs.removeAt(0)
+            if (breadcrumbs.size > maxBreadcrumbs) breadcrumbs.removeAt(0)
         }
     }
 
@@ -172,10 +200,53 @@ public object OleusMobile {
         ship.enqueue(System.currentTimeMillis(), "INFO", "screen_view", attrs)
     }
 
-    /** Force-flush queued events. */
+    /** Force-flush queued events and metrics. */
     @JvmStatic
     public fun flush() {
         shipper?.flush()
+        metricsShipper?.flush()
+    }
+
+    // ── Custom metrics ────────────────────────────────────────────────────────
+
+    /**
+     * Record a gauge — a point-in-time value that can go up or down.
+     * The last value in each 30-second flush window is shipped to VictoriaMetrics.
+     *
+     *     OleusMobile.gauge("match_room.listeners", listenerCount.toDouble(),
+     *                       mapOf("room_id" to roomId))
+     */
+    @JvmStatic
+    @JvmOverloads
+    public fun gauge(name: String, value: Double, tags: Map<String, String> = emptyMap()) {
+        metricsShipper?.recordGauge(name, value, tags)
+    }
+
+    /**
+     * Increment a monotonic counter by [by] (default 1).
+     * The sum of all increments since the last flush is shipped as a delta.
+     *
+     *     OleusMobile.increment("post.impression", tags = mapOf("post_id" to post.id))
+     *     OleusMobile.increment("api.retry", by = 3.0, tags = mapOf("endpoint" to "/feed"))
+     */
+    @JvmStatic
+    @JvmOverloads
+    public fun increment(name: String, by: Double = 1.0, tags: Map<String, String> = emptyMap()) {
+        metricsShipper?.recordIncrement(name, by, tags)
+    }
+
+    /**
+     * Record a histogram sample (e.g. durations in ms).
+     * Each flush ships count, sum, min, max, and distribution across
+     * ms-scale buckets [5, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000].
+     *
+     *     OleusMobile.histogram("api.response_ms", elapsed.toDouble(),
+     *                           mapOf("endpoint" to "/events"))
+     */
+    @JvmStatic
+    @JvmOverloads
+    public fun histogram(name: String, value: Double, tags: Map<String, String> = emptyMap()) {
+        metricsShipper?.recordHistogram(name, value, tags)
     }
 
     // ── identity ────────────────────────────────────────────────────────────────
