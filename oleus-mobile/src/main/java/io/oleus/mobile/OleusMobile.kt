@@ -28,6 +28,8 @@ public object OleusMobile {
     private var shipper: OtlpShipper? = null
     private var sessions: SessionTracker? = null
     private var anrWatchdog: AnrWatchdog? = null
+    private var activityTracker: ActivityTracker? = null
+    private var sessionReplay: SessionReplay? = null
     private var appVersion: String = "unknown"
     private var deviceId: String = "unknown"
     private var identity: OleusIdentity? = null
@@ -44,6 +46,8 @@ public object OleusMobile {
         apiKey: String? = null,
         environment: String = "production",
         anrDetection: Boolean = true,
+        sessionReplayEnabled: Boolean = true,
+        sessionReplaySampleRate: Double = 0.1,
     ) {
         if (shipper != null) return
         val app = context.applicationContext
@@ -100,6 +104,19 @@ public object OleusMobile {
                 attrs["breadcrumbs"] = breadcrumbsJson()
                 ship.enqueue(System.currentTimeMillis(), "ERROR", "ANR: main thread blocked ${blockedForMs}ms", attrs)
             }).also { it.start() }
+        }
+
+        // 5. auto activity tracking + session replay
+        if (app is Application) {
+            val tracker = ActivityTracker()
+            if (sessionReplayEnabled && Math.random() < sessionReplaySampleRate) {
+                val replay = SessionReplay()
+                replay.start()
+                tracker.sessionReplay = replay
+                sessionReplay = replay
+            }
+            app.registerActivityLifecycleCallbacks(tracker)
+            activityTracker = tracker
         }
     }
 
