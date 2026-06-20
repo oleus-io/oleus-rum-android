@@ -9,7 +9,7 @@ Packaged as an Android library (`io.oleus:oleus-mobile`) published to GitHub Pac
 // settings.gradle.kts
 repositories {
     maven {
-        url = uri("https://maven.pkg.github.com/slowdutch/oleus-mobile-android")
+        url = uri("https://maven.pkg.github.com/oleus-io/oleus-mobile-android")
         credentials {
             username = providers.gradleProperty("gpr.user").orNull ?: System.getenv("GITHUB_ACTOR")
             password = providers.gradleProperty("gpr.key").orNull ?: System.getenv("GITHUB_TOKEN")
@@ -35,7 +35,7 @@ class RondoApp : Application() {
             context = this,
             // HTTPS required — Android blocks cleartext HTTP by default, so an
             // http:// endpoint would silently drop every event in production.
-            endpoint = "https://oleus.example.com/otlp",
+            endpoint = "https://api.dashboard.oleus.io/otlp",
             service = "rondo-android",
             apiKey = BuildConfig.OLEUS_INGEST_KEY,
         )
@@ -101,7 +101,7 @@ so the platform retraces them (apply [r8-upload.gradle](r8-upload.gradle), or in
 ```bash
 curl -F "service=rondo-android" -F "version=1.4.0+140" \
      -F "mapping=@app/build/outputs/mapping/release/mapping.txt" \
-     https://oleus.example.com/api/symbols/r8-mapping
+     https://api.dashboard.oleus.io/api/symbols/r8-mapping
 ```
 
 Consumer ProGuard rules keep `SourceFile`/`LineNumberTable` so retraced
